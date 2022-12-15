@@ -15,12 +15,16 @@ func main() {
 	messages, err := greetings.Hellos(names)
 
 	if err != nil {
-		log.Fatal((err))
+		log.Fatal(err)
 	}
 
-	// for name, message := range messages {
-	// 	fmt.Println(name, message)
-	// }
+	for name, message := range messages {
+		name, err := greetings.ToUpper(name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(name, message)
+	}
 
 	fmt.Println(messages)
 }
