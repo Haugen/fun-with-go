@@ -3,4 +3,5 @@ go 1.19
 use (
 	./greetings
 	./hello-world
+	./web-server
 )
