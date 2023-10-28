@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -11,14 +12,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type user struct {
+type User struct {
 	id        int
 	username  string
 	password  string
 	createdAt time.Time
 }
 
+type PageData struct {
+	Users []User
+	Test  string
+}
+
 func main() {
+	html := template.Must(template.ParseFiles("layout.html"))
+
 	db, dbErr := sql.Open("mysql", "root:password@(127.0.0.1:3306)/test?parseTime=true")
 	if dbErr != nil {
 		log.Fatal(dbErr)
@@ -27,20 +35,20 @@ func main() {
 		log.Fatal(pingErr)
 	}
 
-	query := `
-    CREATE TABLE users (
-        id INT AUTO_INCREMENT,
-        username TEXT NOT NULL,
-        password TEXT NOT NULL,
-        created_at DATETIME,
-        PRIMARY KEY (id)
-    );`
+	// query := `
+	//   CREATE TABLE users (
+	//       id INT AUTO_INCREMENT,
+	//       username TEXT NOT NULL,
+	//       password TEXT NOT NULL,
+	//       created_at DATETIME,
+	//       PRIMARY KEY (id)
+	//   );`
 
-	_, createTableErr := db.Exec(query)
+	// _, createTableErr := db.Exec(query)
 
-	if createTableErr != nil {
-		log.Fatal(createTableErr)
-	}
+	// if createTableErr != nil {
+	// 	log.Fatal(createTableErr)
+	// }
 
 	r := mux.NewRouter()
 
@@ -59,12 +67,19 @@ func main() {
 		}
 
 		defer rows.Close()
-		var users []user
+		var users []User
 		for rows.Next() {
-			var u user
+			var u User
 			rows.Scan(&u.id, &u.username, &u.password, &u.createdAt)
 			users = append(users, u)
 		}
+
+		data := PageData{
+			Users: users,
+			Test:  "Hey there",
+		}
+
+		html.Execute(w, data)
 	})
 
 	r.HandleFunc("/user/add/{username}", func(w http.ResponseWriter, r *http.Request) {
